@@ -1,12 +1,12 @@
 import tensorflow as tf
 from tensorflow.keras import Model
-from dataset import DataSet
 import numpy as np
 from tensorflow.keras.initializers import TruncatedNormal
 from tqdm import tqdm
 from time import time
-import pandas as pd
 import pickle
+from config import data_folder, model_folder
+from ml_model.dataset import DataSet
 
 
 class RSModel(Model):
@@ -62,7 +62,7 @@ class RSModel(Model):
     def loss_fn_rmse(self, predictions, labels):
         loss = tf.reduce_sum(tf.math.square(predictions - labels))
         loss += tf.reduce_sum(self.keyword_embedding.losses)
-        loss += tf.reduce_sum(rsmodel.user_embedding.losses) + tf.reduce_sum(rsmodel.item_embedding.losses)
+        loss += tf.reduce_sum(self.user_embedding.losses) + tf.reduce_sum(self.item_embedding.losses)
         #         loss += tf.reduce_sum(self.bias_u.losses) + tf.reduce_sum(self.bias_i.losses)
         return loss
 
@@ -92,8 +92,8 @@ def get_val_rmse(rs_model, val_dataset):
 
 def training(rs_model, optimizer, train_dataset, val_dataset, num_epochs, pretrained=False):
     epoch_step = tf.Variable(0, dtype=tf.int32)
-    ckpt = tf.train.Checkpoint(fism_model=rs_model, epoch_step=epoch_step)
-    manager = tf.train.CheckpointManager(checkpoint=ckpt, directory='./rsmodel_ckpt', max_to_keep=3)
+    ckpt = tf.train.Checkpoint(rec_model=rs_model, epoch_step=epoch_step)
+    manager = tf.train.CheckpointManager(checkpoint=ckpt, directory=model_folder + 'rsmodel_ckpt', max_to_keep=3)
     if pretrained:
         ckpt.restore(manager.latest_checkpoint)
     for epoch in range(num_epochs):
@@ -106,7 +106,7 @@ def training(rs_model, optimizer, train_dataset, val_dataset, num_epochs, pretra
             user_ids, item_ids, ratings = train_dataset.get_batch(i)
             loss_step = train_step(rs_model, optimizer, user_ids, item_ids, ratings)
             train_loss += loss_step
-            if i > 1000:
+            if i > 100:
                 break
         train_time = time() - start_train_time
         print('epoch: ', epoch, '. load data time: ', load_data_time, '. train time: ', train_time, '. train loss: ', train_loss.numpy())
@@ -120,31 +120,98 @@ def training(rs_model, optimizer, train_dataset, val_dataset, num_epochs, pretra
             print('done save at epoch: ', ckpt.epoch_step.numpy())
 
 
-# if __name__ == '__main__':
-#     model_folder = 'E:\\Projects\\Train\\episerver\\model\\rs\\'
-#     train = pickle.load(open(model_folder + 'train.pkl', 'rb'))
-#     val = pickle.load(open(model_folder + 'val.pkl', 'rb'))
-#     test = pickle.load(open(model_folder + 'test.pkl', 'rb'))
-#
-#     movie_id_idx_map = pickle.load(open(model_folder + 'movie_id_idx_map.pkl', 'rb'))
-#     idx_movie_id_map = pickle.load(open(model_folder + 'idx_movie_id_map.pkl', 'rb'))
-#     meta_data = pickle.load(open(model_folder + 'meta_data.pkl', 'rb'))
-#
-#     train_dataset = DataSet(train[['userId', 'itemId', 'rating']].values, batch_size=128)
-#     val_dataset = DataSet(val[['userId', 'itemId', 'rating']].values, batch_size=128)
-#     test_dataset = DataSet(test[['userId', 'itemId', 'rating']].values, batch_size=128)
-#
-#     args = dict()
-#     args['embedding_size'] = 128
-#     args['keyword_embedding_size'] = 64
-#     args['alpha'] = 0.005
-#     args['beta'] = 0.005
-#     args['gamma'] = 0.000
-#     args['num_items'] = meta_data['num_items']
-#     args['num_users'] = meta_data['num_users']
-#     args['num_keywords'] = meta_data['num_keywords']
-#
-#     rsmodel = RSModel(args)
-#     opt = tf.keras.optimizers.Adam(learning_rate=0.005)
-#
-#     training(rsmodel, opt, train_dataset, val_dataset, num_epochs=5)
+def train():
+    train = pickle.load(open(model_folder + 'train.pkl', 'rb'))
+    val = pickle.load(open(model_folder + 'val.pkl', 'rb'))
+    test = pickle.load(open(model_folder + 'test.pkl', 'rb'))
+
+    movie_id_idx_map = pickle.load(open(model_folder + 'movie_id_idx_map.pkl', 'rb'))
+    idx_movie_id_map = pickle.load(open(model_folder + 'idx_movie_id_map.pkl', 'rb'))
+    meta_data = pickle.load(open(model_folder + 'meta_data.pkl', 'rb'))
+
+    item_keywords = pickle.load(open(model_folder + 'item_keywords.pkl', 'rb'))
+
+    train_dataset = DataSet(train[['userId', 'itemId', 'rating']].values, batch_size=1024)
+    val_dataset = DataSet(val[['userId', 'itemId', 'rating']].values, batch_size=1024)
+    test_dataset = DataSet(test[['userId', 'itemId', 'rating']].values, batch_size=1024)
+
+    args = dict()
+    args['embedding_size'] = 64
+    args['keyword_embedding_size'] = 64
+    args['alpha'] = 0.005
+    args['beta'] = 0.005
+    args['gamma'] = 0.000
+    args['num_items'] = meta_data['num_items']
+    args['num_users'] = meta_data['num_users']
+    args['num_keywords'] = meta_data['num_keywords']
+    args['item_keywords'] = item_keywords
+
+    rsmodel = RSModel(args)
+    opt = tf.keras.optimizers.Adam(learning_rate=0.005)
+    training(rsmodel, opt, train_dataset, val_dataset, num_epochs=10)
+
+
+def predict():
+    # load pretrain model
+    test = pickle.load(open(model_folder + 'test.pkl', 'rb'))
+
+    meta_data = pickle.load(open(model_folder + 'meta_data.pkl', 'rb'))
+    item_keywords = pickle.load(open(model_folder + 'item_keywords.pkl', 'rb'))
+
+    args = dict()
+    args['embedding_size'] = 64
+    args['keyword_embedding_size'] = 64
+    args['alpha'] = 0.005
+    args['beta'] = 0.005
+    args['gamma'] = 0.000
+    args['num_items'] = meta_data['num_items']
+    args['num_users'] = meta_data['num_users']
+    args['num_keywords'] = meta_data['num_keywords']
+    args['item_keywords'] = item_keywords
+
+    rec_model = RSModel(args)
+
+    epoch_step = tf.Variable(0, dtype=tf.int32)
+    ckpt = tf.train.Checkpoint(rec_model=rec_model, epoch_step=epoch_step)
+    manager = tf.train.CheckpointManager(checkpoint=ckpt, directory=model_folder + 'rsmodel_ckpt', max_to_keep=3)
+    print('load pretrained model at: ' + manager.latest_checkpoint)
+    ckpt.restore(manager.latest_checkpoint)
+
+    test_dataset = DataSet(test[['userId', 'itemId', 'rating']].values, batch_size=1024)
+    test_score = get_val_rmse(rec_model, test_dataset)
+    print("test score: ", test_score)
+
+    # prepare data for prediction
+    top_n = 100
+    item_ids = np.array(range(meta_data['num_items']))
+    users_embedding = rec_model.user_embedding.weights[0].numpy()
+    items_encode = rec_model.item_embedding.weights[0].numpy()
+    items_bias = np.squeeze(rec_model.bias_i.weights[0].numpy())
+    users_bias = rec_model.bias_u.weights[0].numpy()
+
+    item_keyword = tf.nn.embedding_lookup(rec_model.item_keywords, item_ids)
+    item_keyword_embedding = rec_model.keyword_embedding(item_keyword)
+    item_keyword_encode = tf.reduce_sum(item_keyword_embedding, axis=1)
+    item_keyword_encode = rec_model.mlp_dense(item_keyword_encode)
+    item_keyword_encode = np.squeeze(item_keyword_encode.numpy())
+
+    # predict top_n for user
+    predict_user_dict = dict()
+    for user_id in tqdm(range(1, meta_data['num_users'])):
+        user_embedded = users_embedding[user_id]
+        user_bias = users_bias[user_id]
+        predicts = np.squeeze(np.matmul(user_embedded.reshape(1, -1), items_encode.T)) + items_bias + user_bias + item_keyword_encode
+        best = np.argpartition(predicts, -top_n)[-top_n:]
+        predict_user_dict[user_id] = best.astype(np.int32)
+
+    # save top_n user
+    pickle.dump(predict_user_dict, open(model_folder + 'predict_user_dict.pkl', 'wb'))
+
+
+def train_and_predict():
+    train()
+    predict()
+
+
+if __name__ == '__main__':
+    train_and_predict()

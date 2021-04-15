@@ -12,7 +12,18 @@
         }
     </style>
     <script type="text/javascript">
-
+        function getRecommendMovies(){
+            var userId = document.getElementById("userId").value;
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                   // Typical action to be performed when the document is ready:
+                   document.getElementById("result").innerHTML = xhttp.responseText;
+                }
+            };
+            xhttp.open("GET", "/GetRecMovies?userId=" + userId, true);
+            xhttp.send();
+        }
     </script>
 </head>
     <body>
@@ -21,7 +32,7 @@
         <div>
             <label class="user-label">User Id (select User Id in range [1, 270896]:</label> &nbsp;&nbsp;
             <input id="userId" /> &nbsp;&nbsp;
-            <button type="button">Recommend</button>
+            <button type="button" onclick="getRecommendMovies()">Recommend</button>
         </div>
         <div id="result" class="result">
             List rated movies in history by user
