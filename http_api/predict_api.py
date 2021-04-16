@@ -17,6 +17,6 @@ def hello_api():
 def get_rec_movies():
     user_id = int(request.args.get('userId'))
     predict_model = PredictModel()
-    rec_movies = predict_model.predict(user_id)
+    is_new_user, rec_movies = predict_model.predict(user_id)
     his_movies = predict_model.get_history_movies(user_id)
-    return render_template('result.html', his_movies=his_movies, rec_movies=rec_movies)
+    return render_template('result.html', his_movies=his_movies, rec_movies=rec_movies, is_new_user=is_new_user)

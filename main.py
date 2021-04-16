@@ -53,3 +53,6 @@ if __name__ == '__main__':
         data_preprocessing.preproces()
     elif args.action == 'train':
         rec_model.train_and_predict(args)
+
+    # rec_model.train_and_predict(args)
+    # http_demo.start_api()

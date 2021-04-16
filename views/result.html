@@ -1,8 +1,37 @@
 <!DOCTYPE html>
+<head>
+    <style type="text/css">
+        table, td, th {
+          border: 1px solid black;
+          border-collapse: collapse;
+        }
+        h3 {
+            text-align: center;
+        }
+    </style>
+</head>
 <div>
     <div style="float: left; width=40%">
-        <h3>History rated movies</h3>
-        <table border=1>
+        <h3>Recommend movies</h3>
+        <table>
+            <tr>
+                <th>Title</th>
+                <th>Release date</th>
+            </tr>
+            {% for items in rec_movies %}
+            <tr>
+                <td> {{ items[0] }}</td>
+                <td> {{ items[1] }}</td>
+            </tr>
+
+            {% endfor %}
+        </table>
+    </div>
+
+    <div style="float: left; margin-left: 20px">
+        <h3>History rated movies ----- new user: {{ is_new_user }}</h3>
+
+        <table>
             <tr>
                 <th>Title</th>
                 <th>Release date</th>
@@ -10,27 +39,10 @@
             </tr>
             {% for items in his_movies %}
             <tr>
+                <td> {{ items[0] }}</td>
+                <td> {{ items[1] }}</td>
                 <td> {{ items[2] }}</td>
-                <td> {{ items[1] }}</td>
-                <td> {{ items[0] }}</td>
             </tr>
-            {% endfor %}
-        </table>
-    </div>
-
-    <div style="float: left; margin-left: 20px">
-        <h3>Recommend movies</h3>
-        <table border=1>
-            <tr>
-                <th>Title</th>
-                <th>Release date</th>
-            </tr>
-            {% for items in rec_movies %}
-            <tr>
-                <td> {{ items[1] }}</td>
-                <td> {{ items[0] }}</td>
-            </tr>
-
             {% endfor %}
         </table>
     </div>

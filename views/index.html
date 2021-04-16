@@ -5,7 +5,7 @@
     <title>Title</title>
     <style type="text/css">
         .user-label {
-            font-size: 18px;
+            font-size: 20px;
         }
         .result{
             margin-top: 20px;
@@ -30,14 +30,11 @@
         <h1>Movie recommendation</h1>
         <br/>
         <div>
-            <label class="user-label">User Id (select User Id in range [1, 270896]:</label> &nbsp;&nbsp;
+            <label class="user-label">User Id <spane style="font-size: 18px; font-style: italic;">(select User Id in range [1, 270896])</spane>:</label> &nbsp;&nbsp;
             <input id="userId" /> &nbsp;&nbsp;
             <button type="button" onclick="getRecommendMovies()">Recommend</button>
         </div>
         <div id="result" class="result">
-            List rated movies in history by user
-
-            List recommend movies (movies that user never rated)
         </div>
     </body>
 </html>

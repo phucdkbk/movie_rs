@@ -7,6 +7,7 @@ from time import time
 import pickle
 from config import data_folder, model_folder
 from ml_model.dataset import DataSet
+from ml_model import http_api_prepare
 
 
 class RSModel(Model):
@@ -39,7 +40,7 @@ class RSModel(Model):
         self.bias_i = tf.keras.layers.Embedding(input_dim=self.num_items, output_dim=1,
                                                 embeddings_initializer=TruncatedNormal(mean=0., stddev=0.1),
                                                 embeddings_regularizer=tf.keras.regularizers.L2(self.gamma))
-        self.mlp_dense = tf.keras.layers.Dense(units=1)
+        self.mlp_dense = tf.keras.layers.Dense(units=1, activation='tanh')
 
     def call(self, user_ids, item_ids):
         user_bias = self.bias_u(user_ids)
@@ -60,21 +61,21 @@ class RSModel(Model):
         return r
 
     def loss_fn_rmse(self, predictions, labels):
-        loss = tf.reduce_sum(tf.math.square(predictions - labels))
-        loss += tf.reduce_sum(self.keyword_embedding.losses)
+        rmse = tf.reduce_sum(tf.math.square(predictions - labels))
+        loss = rmse + tf.reduce_sum(self.keyword_embedding.losses)
         loss += tf.reduce_sum(self.user_embedding.losses) + tf.reduce_sum(self.item_embedding.losses)
         #         loss += tf.reduce_sum(self.bias_u.losses) + tf.reduce_sum(self.bias_i.losses)
-        return loss
+        return loss, rmse
 
 
 @tf.function
 def train_step(rs_model, optimizer, user_ids, item_ids, ratings):
     with tf.GradientTape() as tape:
         predictions = rs_model(user_ids, item_ids)
-        loss = rs_model.loss_fn_rmse(predictions, ratings)
+        loss, rmse = rs_model.loss_fn_rmse(predictions, ratings)
     gradients = tape.gradient(target=loss, sources=rs_model.trainable_variables)
     optimizer.apply_gradients(zip(gradients, rs_model.trainable_variables))
-    return loss
+    return rmse
 
 
 def get_val_rmse(rs_model, val_dataset):
@@ -110,7 +111,7 @@ def training(rs_model, optimizer, train_dataset, val_dataset, num_epochs, pretra
             if i > 2000:
                 break
         train_time = time() - start_train_time
-        print('epoch: ', epoch, '. load data time: ', load_data_time, '. train time: ', train_time, '. train loss: ', train_loss.numpy())
+        print('epoch: ', epoch, '. load data time: ', load_data_time, '. train time: ', train_time, '. train loss: ', train_loss.numpy()/(i * train_dataset.batch_size))
         if epoch % 2 == 0:
             val_rmse = get_val_rmse(rs_model, val_dataset)
             score = {'val_rmse': val_rmse}
@@ -150,6 +151,7 @@ def train_model(input_args):
 
 def predict():
     # load pretrain model
+    train = pickle.load(open(model_folder + 'train.pkl', 'rb'))
     test = pickle.load(open(model_folder + 'test.pkl', 'rb'))
 
     meta_data = pickle.load(open(model_folder + 'meta_data.pkl', 'rb'))
@@ -194,7 +196,8 @@ def predict():
 
     # predict top_n for user
     predict_user_dict = dict()
-    for user_id in tqdm(range(1, meta_data['num_users'])):
+    # for user_id in tqdm(range(1, meta_data['num_users'])):
+    for user_id in tqdm(train['userId'].unique()):
         user_embedded = users_embedding[user_id]
         user_bias = users_bias[user_id]
         predicts = np.squeeze(np.matmul(user_embedded.reshape(1, -1), items_encode.T)) + items_bias + user_bias + item_keyword_encode
@@ -208,6 +211,7 @@ def predict():
 def train_and_predict(input_args):
     train_model(input_args)
     predict()
+    http_api_prepare.prepare()
 
 
 if __name__ == '__main__':
