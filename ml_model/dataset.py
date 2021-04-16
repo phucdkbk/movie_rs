@@ -22,7 +22,7 @@ class DataSet:
                 np.array(rates, dtype=np.float32))
 
 
-if __name__ == '__main__':
+def test_dataset():
     base_folder = 'F:\\Projects\\train\\episerver\\data\\rs\\'
     ratings = pd.read_csv(base_folder + 'ratings.csv')
     ratings = ratings[['userId', 'movieId', 'rating']].values
@@ -30,4 +30,8 @@ if __name__ == '__main__':
 
     dataset.shuffle()
     for i in tqdm(range(dataset.num_batch)):
-        _user_ids, _item_ids, ratings = dataset.get_batch(i)
+        user_ids, item_ids, ratings = dataset.get_batch(i)
+
+
+if __name__ == '__main__':
+    test_dataset()

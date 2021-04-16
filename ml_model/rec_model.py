@@ -106,7 +106,8 @@ def training(rs_model, optimizer, train_dataset, val_dataset, num_epochs, pretra
             user_ids, item_ids, ratings = train_dataset.get_batch(i)
             loss_step = train_step(rs_model, optimizer, user_ids, item_ids, ratings)
             train_loss += loss_step
-            if i > 100:
+            # because training on full epoch takes time, break and monitor score
+            if i > 2000:
                 break
         train_time = time() - start_train_time
         print('epoch: ', epoch, '. load data time: ', load_data_time, '. train time: ', train_time, '. train loss: ', train_loss.numpy())
@@ -120,24 +121,20 @@ def training(rs_model, optimizer, train_dataset, val_dataset, num_epochs, pretra
             print('done save at epoch: ', ckpt.epoch_step.numpy())
 
 
-def train():
+def train_model(input_args):
     train = pickle.load(open(model_folder + 'train.pkl', 'rb'))
     val = pickle.load(open(model_folder + 'val.pkl', 'rb'))
-    test = pickle.load(open(model_folder + 'test.pkl', 'rb'))
 
-    movie_id_idx_map = pickle.load(open(model_folder + 'movie_id_idx_map.pkl', 'rb'))
-    idx_movie_id_map = pickle.load(open(model_folder + 'idx_movie_id_map.pkl', 'rb'))
     meta_data = pickle.load(open(model_folder + 'meta_data.pkl', 'rb'))
 
     item_keywords = pickle.load(open(model_folder + 'item_keywords.pkl', 'rb'))
 
     train_dataset = DataSet(train[['userId', 'itemId', 'rating']].values, batch_size=1024)
     val_dataset = DataSet(val[['userId', 'itemId', 'rating']].values, batch_size=1024)
-    test_dataset = DataSet(test[['userId', 'itemId', 'rating']].values, batch_size=1024)
 
     args = dict()
-    args['embedding_size'] = 64
-    args['keyword_embedding_size'] = 64
+    args['embedding_size'] = input_args.embed_size
+    args['keyword_embedding_size'] = input_args.keyword_embed_size
     args['alpha'] = 0.005
     args['beta'] = 0.005
     args['gamma'] = 0.000
@@ -147,8 +144,8 @@ def train():
     args['item_keywords'] = item_keywords
 
     rsmodel = RSModel(args)
-    opt = tf.keras.optimizers.Adam(learning_rate=0.005)
-    training(rsmodel, opt, train_dataset, val_dataset, num_epochs=10)
+    opt = tf.keras.optimizers.Adam(learning_rate=input_args.lr)
+    training(rsmodel, opt, train_dataset, val_dataset, num_epochs=input_args.epochs)
 
 
 def predict():
@@ -208,8 +205,8 @@ def predict():
     pickle.dump(predict_user_dict, open(model_folder + 'predict_user_dict.pkl', 'wb'))
 
 
-def train_and_predict():
-    train()
+def train_and_predict(input_args):
+    train_model(input_args)
     predict()
 
 

@@ -71,10 +71,10 @@ def padding_keywords(movie_keyword_df, num_pad=PreprocessConfig.MOVIE_MAX_KEYWOR
     map_padding_keywords = dict()
     for movie_id, keywords in movie_keyword_df[['movie_id', 'keywords']].values:
         if keywords.__len__() < num_pad:
-            padding_kewords = np.concatenate([np.array(keywords), np.zeros(num_pad - keywords.__len__())], axis=0).astype(np.int32)
+            pad_keywords = np.concatenate([np.array(keywords), np.zeros(num_pad - keywords.__len__())], axis=0).astype(np.int32)
         else:
-            padding_kewords = np.array(keywords[:15]).astype(np.int32)
-        map_padding_keywords[movie_id] = padding_kewords
+            pad_keywords = np.array(keywords[:15]).astype(np.int32)
+        map_padding_keywords[movie_id] = pad_keywords
     movie_keyword_df['padding_keywords'] = movie_keyword_df['movie_id'].map(map_padding_keywords)
     movie_keyword_df = movie_keyword_df.drop(columns='keywords')
     return movie_keyword_df

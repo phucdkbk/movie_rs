@@ -1,7 +1,6 @@
-from flask import Blueprint, Response, render_template
+from flask import Blueprint, render_template
 from flask import request
 import logging
-import json
 from http_api.predict_model import PredictModel
 
 logger = logging.getLogger('movie_rs')
@@ -20,5 +19,4 @@ def get_rec_movies():
     predict_model = PredictModel()
     rec_movies = predict_model.predict(user_id)
     his_movies = predict_model.get_history_movies(user_id)
-    # return_str = str(rec_movies) + '-------------------------------------------------' + str(his_movies)
     return render_template('result.html', his_movies=his_movies, rec_movies=rec_movies)

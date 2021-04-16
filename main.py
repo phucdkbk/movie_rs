@@ -14,7 +14,7 @@ def init_logger():
     ch.setLevel(logging.INFO)
     ch.setFormatter(formatter)
 
-    rotate_handler = RotatingFileHandler('../logs/movie_rs.log', maxBytes=200000000, backupCount=10)
+    rotate_handler = RotatingFileHandler('./logs/movie_rs.log', maxBytes=200000000, backupCount=10)
     rotate_handler.setLevel(logging.INFO)
     rotate_handler.setFormatter(formatter)
 
@@ -52,4 +52,4 @@ if __name__ == '__main__':
     elif args.action == 'preprocess':
         data_preprocessing.preproces()
     elif args.action == 'train':
-        rec_model.train_and_predict()
+        rec_model.train_and_predict(args)
