@@ -26,14 +26,18 @@ Episerver movie recommendation test
    Save downloaded zip file at ./data folder, then extract the zip file
 #### Step 2:
    Preprocess data:
+   
        - python main.py --action preprocess
+       
    The data will be process and split train/test/val and stored in the folder ./model_data
 
 #### Step 3:
    Train model:
+   
        - python main.py --action train   
 
 #### Step 4:
    Export http API:
+   
        - python main.py --action http_demo
 
