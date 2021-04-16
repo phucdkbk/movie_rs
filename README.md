@@ -20,10 +20,10 @@ Episerver movie recommendation test
 
 ## how to run
 #### Step 1:
-   Download dataset:
+   - Download dataset:
        - Can directly download dataset via http at: https://www.kaggle.com/rounakbanik/the-movies-dataset/data
        - Or can download using CLI via tool at: https://github.com/Kaggle/kaggle-api
-   Save downloaded zip file at ./data folder, then extract the zip file
+   - Save downloaded zip file at ./data folder, then extract the zip file
 #### Step 2:
    Preprocess data:
    
