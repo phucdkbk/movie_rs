@@ -1,6 +1,6 @@
 from http_api import http_demo
 import argparse
-from ml_model import data_preprocessing, rec_model
+from ml_model import data_preprocessing, train_process
 import tensorflow as tf
 import logging
 from logging.handlers import RotatingFileHandler
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     elif args.action == 'preprocess':
         data_preprocessing.preproces()
     elif args.action == 'train':
-        rec_model.train_and_predict(args)
+        train_process.train_and_predict(args)
 
     # rec_model.train_and_predict(args)
     # http_demo.start_api()

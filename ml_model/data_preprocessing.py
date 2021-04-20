@@ -119,7 +119,8 @@ def preproces():
     meta_data = {
         'num_users': ratings['userId'].unique().__len__(),
         'num_items': ratings['itemId'].unique().__len__(),
-        'num_keywords': common_keywords.__len__()
+        'num_keywords': common_keywords.__len__(),
+        'mu': train['rating'].mean()
     }
 
     # save processed data

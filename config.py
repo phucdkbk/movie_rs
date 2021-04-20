@@ -13,3 +13,5 @@ class FlaskConfig:
 class PreprocessConfig:
     MIN_OCCURRED_KEYWORD = 3
     MOVIE_MAX_KEYWORD = 15
+
+top_n = 100
