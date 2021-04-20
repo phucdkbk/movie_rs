@@ -44,7 +44,7 @@ class PredictModel:
             is_new_user = True
             rec_movie_ids = self.top_movies
         rec_movies = self.movies_metadata[self.movies_metadata['id'].isin(rec_movie_ids)][['title', 'release_date']].values
-        # np.random.shuffle(rec_movies)
+        np.random.shuffle(rec_movies)
         return is_new_user, rec_movies
 
     def get_history_movies(self, user_id):
