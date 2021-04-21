@@ -3,7 +3,7 @@ import numpy as np
 from tqdm import tqdm
 from time import time
 import pickle
-from config import data_folder, model_folder
+from config import model_folder
 from ml_model.dataset import DataSet
 from ml_model import http_api_prepare
 from ml_model.rec_model import RSModel_7
@@ -95,7 +95,7 @@ def train_model(input_args):
 
 
 def predict(input_args):
-    # load pretrain model
+    # load pretrained model
     train = pickle.load(open(model_folder + 'train.pkl', 'rb'))
     test = pickle.load(open(model_folder + 'test.pkl', 'rb'))
 
@@ -103,8 +103,8 @@ def predict(input_args):
     item_keywords = pickle.load(open(model_folder + 'item_keywords.pkl', 'rb'))
 
     args = dict()
-    args['embedding_size'] = 64
-    args['keyword_embedding_size'] = 64
+    args['embedding_size'] = input_args.embed_size
+    args['keyword_embedding_size'] = input_args.keyword_embed_size
     args['mu'] = meta_data['mu']
     args['alpha'] = input_args.alpha
     args['beta'] = input_args.beta
@@ -147,7 +147,6 @@ def predict(input_args):
 
     # predict top_n for user
     predict_user_dict = dict()
-    # for user_id in tqdm(range(1, meta_data['num_users'])):
     for user_id in tqdm(train['userId'].unique()):
         user_embedded = users_embedding[user_id]
         user_bias = users_bias[user_id]

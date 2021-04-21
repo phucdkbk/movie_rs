@@ -49,8 +49,6 @@ class RSModel(Model):
         item_encode = self.mlp_keyword_dense(item_encode)
         # rating score
         r = tf.squeeze(user_bias) + tf.squeeze(item_bias) + tf.reduce_sum(mf, axis=1) + tf.reduce_sum(item_encode, axis=1)
-
-        #         r = tf.squeeze(user_bias) + tf.squeeze(item_bias) + tf.reduce_sum(mf, axis=1)
         return r
 
     def loss_fn_rmse(self, predictions, labels):
@@ -62,7 +60,7 @@ class RSModel(Model):
 
 '''
     - keyword mask
-    - add global rating meam mu
+    - add global rating mean mu
 '''
 class RSModel_7(Model):
 
@@ -121,8 +119,8 @@ class RSModel_7(Model):
         return r
 
     def loss_fn_rmse(self, predictions, labels):
-        rmse = tf.reduce_sum(tf.math.square(predictions - labels))
-        loss = rmse + tf.reduce_sum(self.keyword_embedding.losses)
+        square_error = tf.reduce_sum(tf.math.square(predictions - labels))
+        loss = square_error + tf.reduce_sum(self.keyword_embedding.losses)
         loss += tf.reduce_sum(self.user_embedding.losses) + tf.reduce_sum(self.item_embedding.losses)
         loss += tf.reduce_sum(self.mlp_keyword_dense.losses)
-        return loss, rmse
+        return loss, square_error
