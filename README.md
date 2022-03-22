@@ -1,5 +1,5 @@
-# movie_rs
-Episerver movie recommendation test
+# Movie recommendatation for The Movie Dataset
+Movie recommendation for The Movie Dataset at https://www.kaggle.com/rounakbanik/the-movies-dataset/data
 
 ## System requirements:
    - RAM: 16GB
